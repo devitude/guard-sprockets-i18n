@@ -13,10 +13,6 @@ require 'guard/sprockets-i18n/context_helper'
 module Guard
   class SprocketsI18n < Plugin
 
-    class << self
-      attr_accessor :current_file_key
-    end
-
     # Initializes a Guard plugin.
     # Don't do any work here, especially as Guard plugins get initialized even if they are not in an active group!
     #
@@ -42,6 +38,7 @@ module Guard
       @locales.each do |locale|
         sprockets_env = Sprockets::Environment.new
         sprockets_env.context_class.class_eval do
+          extend SprocketsI18nContextHelper::ClassMethods
           include SprocketsI18nContextHelper
         end
         @assets_path.each do |path|
@@ -128,14 +125,15 @@ module Guard
     def process_paths(paths)
       original_locale = I18n.locale
       paths.each do |path|
-        set_processing_file path
+        i18n_key_prefix = get_i18n_prefix path
         @sprockets_environments.each do |locale, env|
           I18n.locale = locale
+          env.context_class.i18n_key_prefix = i18n_key_prefix
+
           dest_file = get_locale_filename(locale, path)
           process_sprocket_file(env, path, dest_file)
         end
       end
-      set_processing_file ''
       I18n.locale = original_locale
     end
 
@@ -147,13 +145,12 @@ module Guard
       File.join(@dest_dir, out_file)
     end
 
-    def set_processing_file(path)
+    def get_i18n_prefix(path)
       if path.length > 0
         path_ext = File.extname(path)
         path = File.basename(path, path_ext)
       end
-      UI.info "Set processing file: #{path.gsub('/', '.')}"
-      self.class.current_file_key = path.gsub('/', '.')
+      path
     end
 
     def process_sprocket_file(environment, file, dest_file)
