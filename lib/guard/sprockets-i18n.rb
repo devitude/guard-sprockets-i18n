@@ -4,6 +4,12 @@ require 'guard/plugin'
 require 'i18n'
 require 'sprockets'
 
+begin
+  require 'coffee_script'
+rescue LoadError
+  $stderr.puts "WARN: guard-sprocketes-i18n - No CoffeeScript support (coffee_script gem not found)"
+end
+
 require 'guard/sprockets-i18n/context_helper'
 
 # def t(key, options = nil)
