@@ -123,10 +123,15 @@ module Guard
 
     private
     def process_paths(paths)
+      I18n.backend.reload! # reload the translations
       original_locale = I18n.locale
       paths.each do |path|
         i18n_key_prefix = get_i18n_prefix path
         @sprockets_environments.each do |locale, env|
+          # need to force sprockets to reload the file. If the file contents doesn't change
+          # but translation files changes, the file is not re-processed by sprockets
+          env.send :expire_index! # expire cache in sprockets
+
           I18n.locale = locale
           env.context_class.i18n_key_prefix = i18n_key_prefix
 
