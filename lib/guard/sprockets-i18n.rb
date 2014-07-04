@@ -160,7 +160,7 @@ module Guard
 
     def process_sprocket_file(environment, file, dest_file)
       UI.info "Processing #{file} -> #{dest_file}"
-      File.write(dest_file, environment[file])
+      environment[file].write_to dest_file
     rescue => ex
       UI.error "Error processing file: #{ex.message}"
     end
